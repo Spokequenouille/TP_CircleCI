@@ -15,7 +15,7 @@ jobs:
           command: yarn global add node-gyp && yarn install
       - run: yarn lint
       - run: yarn format --check
-      - run: yarn test.ci
+      - run: yarn test:ci
       - save_cache:
           key: yarn-packages-{{checksum "yarn.lock"}}
           paths:
