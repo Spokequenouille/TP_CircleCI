@@ -13,8 +13,10 @@ jobs:
       - run:
           name: install node
           command: yarn global add node-gyp && yarn install
-      - run: yarn lint && yarn format:check && yarn test.ci
-      - save_cache: 
+      - run: yarn lint
+      - run: yarn format:check
+      - run: yarn test.ci
+      - save_cache:
           key: yarn-packages-{{checksum "yarn.lock"}}
-          paths: 
+          paths:
             - ./node_module
