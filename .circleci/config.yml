@@ -1,6 +1,11 @@
 
 version: 2.1
 
+workflows:
+  build_docker:
+  jobs:
+    - deploy_node
+
 jobs:
   deploy_node:
     docker:
@@ -27,7 +32,4 @@ jobs:
           - ./node_module
 
 
-workflows:
-  build_docker:
-  jobs:
-    - deploy_node
+
