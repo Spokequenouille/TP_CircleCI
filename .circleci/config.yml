@@ -12,14 +12,6 @@ workflows:
 
 jobs:
   deploy_node:
-    docker:
-      - image: circleci/node:14 # the primary container, where your job's commands are run
-        environment:
-          DATABASEURL: postgres://psqluser:psqlpassword@localhost:5432/psdb
-          JWT_SECRET: secret
-          API_PORT: 3000
-          API_HOST: localhost
-          API_PROTOCOL: http
     steps: 
       - checkout
       - restore_cache: 
@@ -32,6 +24,14 @@ jobs:
           paths:
             - ./node_module
   deploy_bdd:
+    docker:
+      - image: circleci/node:14 # the primary container, where your job's commands are run
+        environment:
+          DATABASEURL: postgres://psqluser:psqlpassword@localhost:5432/psdb
+          JWT_SECRET: secret
+          API_PORT: 3000
+          API_HOST: localhost
+          API_PROTOCOL: http
     docker:
       - image: 'circleci/postgres:9.6.2-alpine'
         environment:
