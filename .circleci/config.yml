@@ -8,7 +8,7 @@ workflows:
       - deploy_node
   build_bdd:
     jobs:
-      -deploy_bdd
+      - deploy_bdd
 
 jobs:
   deploy_node:
@@ -38,3 +38,12 @@ jobs:
           POSTGRE_USER: psqluser
           POSTGRE_PASSWORD: psqlpassword
           POSTGRE_DB: psdb
+    steps:
+      - checkout
+      - restore_cache:
+          key: yarn-packages-{{ checksum "yarn.lock" }}
+      - run: yarn test:e2e
+      - save_cache:
+          key: yarn-packages-{{ checksum "yarn.lock" }}
+          paths:
+            - ./node_modules
