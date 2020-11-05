@@ -2,32 +2,32 @@
 version: 2.1
 
 jobs:
-    deploy_node:
-        docker:
-            - image: cimg/node:14.10.1 # the primary container, where your job's commands are run
-                environment:
-                    DATABASEURL: postgres://psqluser:psqlpassword@localhost:5432/psdb
-                    JWT_SECRET: secret
-                    API_PORT: 3000
-                    API_HOST: localhost
-                    API_PROTOCOL: http
-                auth:
-                    username: mydockerhub-user
-                    password: $DOCKERHUB_PASSWORD # context / project UI env-var reference
-        steps: 
-            - checkout
-            - restore_cache:
-                key: yarn-packages-{{checksum "yarn.lock"}}
-            - run:
-                name: install node
-                command: yarn global add node-gyp && yarn install
-            - save_cache:
-                key: yarn-packages-{{checksum "yarn.lock"}}
-                paths:
-                    - ./node_module
+  deploy_node:
+    docker:
+      - image: cimg/node:14.10.1 # the primary container, where your job's commands are run
+        environment:
+          DATABASEURL: postgres://psqluser:psqlpassword@localhost:5432/psdb
+          JWT_SECRET: secret
+          API_PORT: 3000
+          API_HOST: localhost
+          API_PROTOCOL: http
+          auth:
+            username: mydockerhub-user
+            password: $DOCKERHUB_PASSWORD # context / project UI env-var reference
+    steps: 
+      - checkout
+      - restore_cache:
+        key: yarn-packages-{{checksum "yarn.lock"}}
+      - run:
+        name: install node
+        command: yarn global add node-gyp && yarn install
+      - save_cache:
+        key: yarn-packages-{{checksum "yarn.lock"}}
+        paths:
+          - ./node_module
 
 
 workflows:
-    build_docker:
-        jobs:
-            - deploy_node
+  build_docker:
+  jobs:
+    - deploy_node
