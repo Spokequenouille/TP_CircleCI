@@ -1,33 +1,62 @@
-version: 2.1
+workflows:
+  install:
+    jobs:
+      - yarn
+      - lint:
+          requires:
+            - yarn
+  tests:
+    jobs:
+      - bdd
 jobs:
-  build:
+  yarn:
     docker:
-      - image: cimg/node:14.10.1 # the primary container, where your job's commands are run
+      - image: 'circleci/node:12'
+    steps:
+      - checkout
+      - restore_cache:
+          key: yarn-packages-{{ checksum "yarn.lock" }}
+      - run: yarn global add node-gyp
+      - run: yarn install
+      - save_cache:
+          key: yarn-packages-{{ checksum "yarn.lock" }}
+          paths:
+            - ./node_modules
+  lint:
+    docker:
+      - image: 'circleci/node:12'
+    steps:
+      - checkout
+      - restore_cache:
+          key: yarn-packages-{{ checksum "yarn.lock" }}
+      - run: yarn lint
+      - run: yarn format:check
+      - run: yarn test:ci
+      - save_cache:
+          key: yarn-packages-{{ checksum "yarn.lock" }}
+          paths:
+            - ./node_modules
+  bdd:
+    docker:
+      - image: 'circleci/node:12'
         environment:
-          DATABASEURL: postgres://psqluser:psqlpassword@localhost:5432/psdb
-          JWT_SECRET: secret
+          DATABASE_URL: postgres://psqluser:psqlpassword@localhost:5432/psdb
+          JWT_SECRET: bla bla
           API_PORT: 3000
           API_HOST: localhost
           API_PROTOCOL: http
-        auth:
-          username: mydockerhub-user
-          password: $DOCKERHUB_PASSWORD # context / project UI env-var reference
       - image: 'circleci/postgres:9.6.2-alpine'
         environment:
-          POSTGRE_USER: psqluser
-          POSTGRE_PASSWORD: psqlpassword
-          POSTGRE_DB: psdb
+          POSTGRES_USER: psqluser
+          POSTGRES_PASSWORD: psqlpassword
+          POSTGRES_DB: psdb
+
     steps:
-      - checkout # check out the code in the project directory
+      - checkout
       - restore_cache:
-          key: yarn-packages-{{checksum "yarn.lock"}}
-      - run:
-          name: install node
-          command: yarn global add node-gyp && yarn install
-      - run: yarn lint
-      - run: yarn format --check
-      - run: yarn test:ci
+          key: yarn-packages-{{ checksum "yarn.lock" }}
+      - run: yarn test:e2e
       - save_cache:
-          key: yarn-packages-{{checksum "yarn.lock"}}
+          key: yarn-packages-{{ checksum "yarn.lock" }}
           paths:
-            - ./node_module
+            - ./node_modules
