@@ -1,34 +1,50 @@
+
 version: 2.1
 
+workflows:
+  version: 2
+  build_docker:
+    jobs:
+      - deploy_node
+  build_bdd:
+    jobs:
+      - deploy_bdd
+
 jobs:
-  build:
+  deploy_node:
     docker:
-      - image: cimg/node:14.10.1 # the primary container, where your job's commands are run
+      - image: circleci/node:14 # the primary container, where your job's commands are run
         environment:
           DATABASEURL: postgres://psqluser:psqlpassword@localhost:5432/psdb
           JWT_SECRET: secret
           API_PORT: 3000
           API_HOST: localhost
           API_PROTOCOL: http
-        auth:
-          username: mydockerhub-user
-          password: $DOCKERHUB_PASSWORD # context / project UI env-var reference
+    steps: 
+      - checkout
+      - restore_cache: 
+          key: yarn-packages-{{checksum "yarn.lock"}}
+      - run:
+          name: install node
+          command: yarn global add node-gyp && yarn install
+      - save_cache:
+          key: yarn-packages-{{checksum "yarn.lock"}}
+          paths:
+            - ./node_module
+  deploy_bdd:
+    docker:
       - image: 'circleci/postgres:9.6.2-alpine'
         environment:
           POSTGRE_USER: psqluser
           POSTGRE_PASSWORD: psqlpassword
           POSTGRE_DB: psdb
     steps:
-      - checkout # check out the code in the project directory
+      - checkout
       - restore_cache:
-          key: yarn-packages-{{checksum "yarn.lock"}}
-      - run:
-          name: install node
-          command: yarn global add node-gyp && yarn install
-      - run: yarn lint
-      - run: yarn format --check
-      - run: yarn test:ci
+          key: yarn-packages-{{ checksum "yarn.lock" }}
       - save_cache:
-          key: yarn-packages-{{checksum "yarn.lock"}}
+          key: yarn-packages-{{ checksum "yarn.lock" }}
           paths:
-            - ./node_module
+            - ./node_modules
+      - run: yarn test:e2e
+

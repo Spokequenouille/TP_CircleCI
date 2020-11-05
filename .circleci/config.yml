@@ -1,48 +1,34 @@
-
 version: 2.1
 
-workflows:
-  version: 2
-  build_docker:
-    jobs:
-      - deploy_node
-  build_bdd:
-    jobs:
-      - deploy_bdd
-
 jobs:
-  deploy_node:
-    steps: 
-      - checkout
-      - restore_cache: 
-          key: yarn-packages-{{checksum "yarn.lock"}}
-      - run:
-          name: install node
-          command: yarn global add node-gyp && yarn install
-      - save_cache:
-          key: yarn-packages-{{checksum "yarn.lock"}}
-          paths:
-            - ./node_module
-  deploy_bdd:
+  build:
     docker:
-      - image: 'circleci/postgres:9.6.2-alpine'
-        environment:
-          POSTGRE_USER: psqluser
-          POSTGRE_PASSWORD: psqlpassword
-          POSTGRE_DB: psdb
-      - image: circleci/node:14 # the primary container, where your job's commands are run
+      - image: cimg/node:14.10.1 # the primary container, where your job's commands are run
         environment:
           DATABASEURL: postgres://psqluser:psqlpassword@localhost:5432/psdb
           JWT_SECRET: secret
           API_PORT: 3000
           API_HOST: localhost
           API_PROTOCOL: http
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD # context / project UI env-var reference
+      - image: 'circleci/postgres:9.6.2-alpine'
+        environment:
+          POSTGRE_USER: psqluser
+          POSTGRE_PASSWORD: psqlpassword
+          POSTGRE_DB: psdb
     steps:
-      - checkout
+      - checkout # check out the code in the project directory
       - restore_cache:
-          key: yarn-packages-{{ checksum "yarn.lock" }}
+          key: yarn-packages-{{checksum "yarn.lock"}}
+      - run:
+          name: install node
+          command: yarn global add node-gyp && yarn install
+      - run: yarn lint
+      - run: yarn format --check
+      - run: yarn test:ci
       - save_cache:
-          key: yarn-packages-{{ checksum "yarn.lock" }}
+          key: yarn-packages-{{checksum "yarn.lock"}}
           paths:
-            - ./node_modules
-      - run: yarn test:e2e
+            - ./node_module
