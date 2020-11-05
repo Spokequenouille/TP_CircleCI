@@ -10,16 +10,13 @@ workflows:
 jobs:
   deploy_node:
     docker:
-      - image: cimg/node:12 # the primary container, where your job's commands are run
+      - image: circleci/node:14 # the primary container, where your job's commands are run
         environment:
           DATABASEURL: postgres://psqluser:psqlpassword@localhost:5432/psdb
           JWT_SECRET: secret
           API_PORT: 3000
           API_HOST: localhost
           API_PROTOCOL: http
-        auth:
-          username: mydockerhub-user
-          password: $DOCKERHUB_PASSWORD" # context / project UI env-var reference
     steps: 
       - checkout
       - restore_cache: 
