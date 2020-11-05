@@ -14,7 +14,7 @@ jobs:
         environment:
           DATABASEURL: postgres://psqluser:psqlpassword@localhost:5432/psdb
           JWT_SECRET: secret
-          API_PORT: '3000'
+          API_PORT: 3000
           API_HOST: localhost
           API_PROTOCOL: http
         auth:
