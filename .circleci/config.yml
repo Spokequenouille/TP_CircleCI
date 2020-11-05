@@ -42,8 +42,8 @@ jobs:
       - checkout
       - restore_cache:
           key: yarn-packages-{{ checksum "yarn.lock" }}
-      - run: yarn test:e2e
       - save_cache:
           key: yarn-packages-{{ checksum "yarn.lock" }}
           paths:
             - ./node_modules
+      - run: yarn test:e2e
